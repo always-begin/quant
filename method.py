@@ -50,12 +50,22 @@ def get_trend_of_rsi(input_df, window=14, price_field='Close'):
   else:
     print("it cant create rsi dataframe")
     return None
+  
+
+def get_trend_of_envelope(input_df, window=20, spread = .05, price_field='Close'):
+
+  output_df = input_df.copy()
+  output_df['center'] = output_df[price_field].rolling(window).mean()
+  output_df['ub'] = output_df['center']*(1+spread)
+  output_df['lb'] = output_df['center']*(1-spread)
+  return output_df[[price_field, 'center', 'ub', 'lb']]
+
 
 # %% set position
 
 
-def add_calcualte_signal_df(df, factor, buy, sell):
-  df['trade'] = None
+def add_signal_df(df, factor, buy, sell):
+  df['trade'] = np.nan
   if buy >= sell:
     df['trade'] = df['trade'].mask(df[factor] > buy, 'have')
     df['trade'] = df['trade'].mask(df[factor] < sell, 'zero')
@@ -67,6 +77,31 @@ def add_calcualte_signal_df(df, factor, buy, sell):
   add_position_df(df)
   print(f"signal columns : {df.columns}")
   return df
+
+def add_band_to_signal(df, factor, buy, sell):
+
+    df['trade'] = np.nan
+    # buy
+    if buy == 'A':
+        df['trade'].mask(df[factor]>df['ub'], 'have', inplace=True)
+    elif buy == 'B':
+        df['trade'].mask((df['ub']>df[factor]) & (df[factor]>df['center']), 'have', inplace=True)
+    elif buy == 'C':
+        df['trade'].mask((df['center']>df[factor]) & (df[factor]>df['lb']), 'have', inplace=True)
+    elif buy == 'D':
+        df['trade'].mask((df['lb']>df[factor]), 'have', inplace=True)
+    # zero
+    if sell == 'A':
+        df['trade'].mask(df[factor]>df['ub'], 'zero', inplace=True)
+    elif sell == 'B':
+        df['trade'].mask((df['ub']>df[factor]) & (df[factor]>df['center']), 'zero', inplace=True)
+    elif sell == 'C':
+        df['trade'].mask((df['center']>df[factor]) & (df[factor]>df['lb']), 'zero', inplace=True)
+    elif sell == 'D':
+        df['trade'].mask((df['lb']>df[factor]), 'zero', inplace=True)
+    df['trade'].fillna(method='ffill', inplace=True)
+    df['trade'].fillna('zero', inplace=True)
+    return df['trade']
 
 
 def add_position_df(df):
@@ -199,6 +234,9 @@ def draw_chart(dataframe, left=None, right='Close'):
 
 def draw_trade_results(dataframe):
   fs.draw_trade_results(dataframe)
+
+def draw_band_chart(dataframe, band=['lb','center','ub'], log=False):
+  fs.draw_band_chart(dataframe, band=['lb','center','ub'], log=False)
 
 
 # %%
