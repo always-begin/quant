@@ -50,9 +50,9 @@ def get_trend_of_rsi(input_df, window=14, factor='Close'):
   else:
     print("it cant create rsi dataframe")
     return None
-  
 
-def get_trend_of_envelope(input_df, window=20, spread = .05, factor='Close'):
+
+def get_trend_of_envelope(input_df, window=20, spread=.05, factor='Close'):
 
   output_df = input_df.copy()
   output_df['center'] = output_df[factor].rolling(window).mean()
@@ -67,7 +67,7 @@ def get_trend_of_bollinger(input_df, w=20, k=2, factor='Close'):
   output_df['sigma'] = output_df[factor].rolling(w).std()
   output_df['ub'] = output_df['center'] + k * output_df['sigma']
   output_df['lb'] = output_df['center'] - k * output_df['sigma']
-  return output_df[[factor, 'center','ub','lb']]
+  return output_df[[factor, 'center', 'ub', 'lb']]
 
 
 # %% set position
@@ -87,30 +87,32 @@ def add_signal_df(df, factor, buy, sell):
   print(f"signal columns : {df.columns}")
   return df
 
+
 def add_band_to_signal(df, factor, buy, sell):
 
     df['trade'] = np.nan
     # buy
     if buy == 'A':
-        df['trade'].mask(df[factor]>df['ub'], 'have', inplace=True)
+        df['trade'].mask(df[factor] > df['ub'], 'have', inplace=True)
     elif buy == 'B':
-        df['trade'].mask((df['ub']>df[factor]) & (df[factor]>df['center']), 'have', inplace=True)
+        df['trade'].mask((df['ub'] > df[factor]) & (df[factor] > df['center']), 'have', inplace=True)
     elif buy == 'C':
-        df['trade'].mask((df['center']>df[factor]) & (df[factor]>df['lb']), 'have', inplace=True)
+        df['trade'].mask((df['center'] > df[factor]) & (df[factor] > df['lb']), 'have', inplace=True)
     elif buy == 'D':
-        df['trade'].mask((df['lb']>df[factor]), 'have', inplace=True)
+        df['trade'].mask((df['lb'] > df[factor]), 'have', inplace=True)
     # zero
     if sell == 'A':
-        df['trade'].mask(df[factor]>df['ub'], 'zero', inplace=True)
+        df['trade'].mask(df[factor] > df['ub'], 'zero', inplace=True)
     elif sell == 'B':
-        df['trade'].mask((df['ub']>df[factor]) & (df[factor]>df['center']), 'zero', inplace=True)
+        df['trade'].mask((df['ub'] > df[factor]) & (df[factor] > df['center']), 'zero', inplace=True)
     elif sell == 'C':
-        df['trade'].mask((df['center']>df[factor]) & (df[factor]>df['lb']), 'zero', inplace=True)
+        df['trade'].mask((df['center'] > df[factor]) & (df[factor] > df['lb']), 'zero', inplace=True)
     elif sell == 'D':
-        df['trade'].mask((df['lb']>df[factor]), 'zero', inplace=True)
+        df['trade'].mask((df['lb'] > df[factor]), 'zero', inplace=True)
     df['trade'].fillna(method='ffill', inplace=True)
     df['trade'].fillna('zero', inplace=True)
     return df['trade']
+
 
 def add_combine_signal_and(df, conditions):
     '''
@@ -155,7 +157,7 @@ def add_position_df(df):
 # %% to evaluate a strategy
 
 
-def get_evaluate_column(df, factor='Close', cost=.001, rf_rate=.01,isPrint=True):
+def get_evaluate_column(df, factor='Close', cost=.001, rf_rate=.01, isPrint=True):
   '''
   Calculate daily returns and MDDs of portfolio
   :param df: The dataframe containing trading position
@@ -211,7 +213,7 @@ def calcualte_performance(df, rf_rate=.01, isPrint=True):
   rst['mdd'] = df['mdd'].min()
   rst['bm_mdd'] = df['bm_mdd'].min()
 
-  if isPrint :
+  if isPrint:
     print('CAGR: {:.2%}'.format(rst['annual_rtn'] - 1))
     print('Accumulated return: {:.2%}'.format(rst['acc_rtn'] - 1))
     print('Average return: {:.2%}'.format(rst['avg_rtn'] - 1))
@@ -224,19 +226,19 @@ def calcualte_performance(df, rf_rate=.01, isPrint=True):
     print('MDD: {:.2%}'.format(rst['mdd']-1))
     print('Benchmark MDD: {:.2%}'.format(rst['bm_mdd']-1))
     print("\n\n\n")
-  ret ={}
+  ret = {}
 
   ret['CAGR'] = float(round((rst['annual_rtn'] - 1)*100, 3))
   ret['Accumulated'] = float(round((rst['acc_rtn'] - 1)*100, 3))
-  ret['Average'] =round( (rst['avg_rtn'] - 1)*100, 3)
-  ret['Benchmark'] =float(round( (rst['bm_rtn']-1)*100, 3))
+  ret['Average'] = round((rst['avg_rtn'] - 1)*100, 3)
+  ret['Benchmark'] = float(round((rst['bm_rtn']-1)*100, 3))
   ret['Trade'] = int(rst['no_trades'])
   ret['Win'] = int(rst['no_win'])
   ret['Hit ratio'] = float(round(rst['hit_ratio']*100))
   ret['Investment period'] = int(rst['period'])
-  ret['Sharpe'] = float(round(rst['sharpe_ratio']*100,3))
+  ret['Sharpe'] = float(round(rst['sharpe_ratio']*100, 3))
   ret['MDD'] = round((rst['mdd']-1)*100, 3)
-  ret['Benchmark MDD'] =round( (rst['bm_mdd']-1)*100, 3)
+  ret['Benchmark MDD'] = round((rst['bm_mdd']-1)*100, 3)
   return ret
 
 
@@ -283,8 +285,9 @@ def draw_chart(dataframe, left=None, right='Close'):
 def draw_trade_results(dataframe):
   fs.draw_trade_results(dataframe)
 
-def draw_band_chart(dataframe, band=['lb','center','ub'], log=False):
-  fs.draw_band_chart(dataframe, band=['lb','center','ub'], log=False)
+
+def draw_band_chart(dataframe, band=['lb', 'center', 'ub'], log=False):
+  fs.draw_band_chart(dataframe, band=['lb', 'center', 'ub'], log=False)
 
 
 # %%
