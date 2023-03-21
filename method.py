@@ -13,13 +13,14 @@ def get_yf_df(name, startDt, endDt):
   ticker = yf.Ticker(name)
   print(f"start : {startDt},end: {endDt}")
   stockDf = ticker.history(start=startDt, end=endDt)
+  stockDf.index = stockDf.index.tz_convert(None)
   print(f"yahoo finance df's columns : {stockDf.columns}")
   return stockDf
 
 # %% set strategy
 
 
-def get_trend_of_macd_df(input_df, short=12, long=26, signal=9, factor='Close'):
+def get_macd(input_df, short=12, long=26, signal=9, factor='Close'):
 
   output_df = input_df.copy()
   output_df['ema_short'] = input_df[factor].ewm(span=short).mean()
@@ -32,7 +33,7 @@ def get_trend_of_macd_df(input_df, short=12, long=26, signal=9, factor='Close'):
   return ret
 
 
-def get_trend_of_rsi(input_df, window=14, factor='Close'):
+def get_rsi(input_df, window=14, factor='Close'):
 
   output_df = input_df.copy()
   output_df.fillna(method='ffill', inplace=True)
@@ -52,22 +53,39 @@ def get_trend_of_rsi(input_df, window=14, factor='Close'):
     return None
 
 
-def get_trend_of_envelope(input_df, window=20, spread=.05, factor='Close'):
+def get_envelope(input_df, window=20, spread=.05, factor='Close'):
 
   output_df = input_df.copy()
   output_df['center'] = output_df[factor].rolling(window).mean()
   output_df['ub'] = output_df['center']*(1+spread)
   output_df['lb'] = output_df['center']*(1-spread)
-  return output_df[[factor, 'center', 'ub', 'lb']]
+  ret = output_df[[factor, 'center', 'ub', 'lb']]
+  print(f"envelope output_df : {ret.columns}")
+  return ret
 
-
-def get_trend_of_bollinger(input_df, w=20, k=2, factor='Close'):
+def get_bollinger(input_df, w=20, k=2, factor='Close'):
   output_df = input_df.copy()
   output_df['center'] = output_df[factor].rolling(w).mean()
   output_df['sigma'] = output_df[factor].rolling(w).std()
   output_df['ub'] = output_df['center'] + k * output_df['sigma']
   output_df['lb'] = output_df['center'] - k * output_df['sigma']
-  return output_df[[factor, 'center', 'ub', 'lb']]
+  ret = output_df[[factor, 'center', 'ub', 'lb']]
+  print(f"bollinger output_df : {ret.columns}")
+  return ret
+
+def get_stochastic(input_df, day_fast_k=14, day_slow_k=3, day_slow_d=3 , factor='Close'):
+  output_df = input_df.copy()
+  try:
+      output_df['fast_k'] = ( ( output_df['Close'] - output_df['Low'].rolling(day_fast_k).min() ) 
+                             / ( output_df['High'].rolling(day_fast_k).max() - output_df['Low'].rolling(day_fast_k).min() ) 
+                             ).round(4) * 100
+      output_df['slow_k'] = output_df['fast_k'].rolling(day_slow_k).mean().round(2)
+      output_df['slow_d'] = output_df['slow_k'].rolling(day_slow_d).mean().round(2)
+      ret = output_df[[factor, 'slow_k', 'slow_d']]
+      print(f"stochastic output_df : {ret.columns}")
+      return ret
+  except:
+      return 'Error. The stochastic indicator requires OHLC data and symbol. Try get_ohlc() to retrieve price data.'
 
 
 # %% set position
@@ -112,6 +130,7 @@ def add_band_to_signal(df, factor, buy, sell):
     df['trade'].fillna(method='ffill', inplace=True)
     df['trade'].fillna('zero', inplace=True)
     return df['trade']
+
 
 
 def add_combine_signal_and(df, conditions):
