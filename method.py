@@ -26,8 +26,6 @@ def fn_single( symbol='', window='T'):
       print(r.text)
 
 
-
-
 # download stock dataframe
 def get_yf_df(name, startDt, endDt):
   ticker = yf.Ticker(name)
