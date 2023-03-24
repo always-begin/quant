@@ -5,10 +5,30 @@ import numpy as np
 from datetime import datetime
 import finterstellar as fs
 import matplotlib.pyplot as plt
+import requests
+
+
+# get token
+def fn_single( symbol='', window='T'):
+  file = open("../token", 'r')
+  otp = file.readline()
+  url = 'https://api.finterstellar.com/api/single?otp={}&symbol={}&window={}'.format(otp, symbol, window)
+  r = requests.get(url)
+  try:
+      df = pd.read_json(r.text, orient='index')
+      if 'Current Debt' in df.columns:
+          df['Current Debt'].fillna(0, inplace=True)
+      else:
+          df['Current Debt'] = 0
+      df = df[~(pd.isna(df['Revenue'])|pd.isna(df['Price']))].fillna(0).copy()
+      return df
+  except:
+      print(r.text)
+
+
+
 
 # download stock dataframe
-
-
 def get_yf_df(name, startDt, endDt):
   ticker = yf.Ticker(name)
   print(f"start : {startDt},end: {endDt}")
