@@ -1,5 +1,11 @@
+import matplotlib.font_manager as fm
 import finterstellar as fs
+import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.font_manager
+
+plt.rcParams['font.family'] = 'AppleGothic'
+plt.rcParams['axes.unicode_minus'] = False
 
 
 def draw_chart(dataframe, left=None, right='Close'):

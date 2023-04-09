@@ -2,7 +2,9 @@
 import numpy as np
 
 
-def add_signal_df(df, factor, buy, sell):
+def add_signal_df(df, buy, sell, factor=None):
+  if factor == None:
+    factor = df.columns[0]
   df['trade'] = np.nan
   if buy >= sell:
     df['trade'] = df['trade'].mask(df[factor] > buy, 'have')
@@ -17,8 +19,9 @@ def add_signal_df(df, factor, buy, sell):
   return df
 
 
-def add_band_to_signal(df, factor, buy, sell):
-
+def add_band_to_signal(df, buy, sell, factor=None):
+  if factor == None:
+    factor = df.columns[0]
   df['trade'] = np.nan
   # buy
   if buy == 'A':

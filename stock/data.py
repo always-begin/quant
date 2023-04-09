@@ -8,7 +8,7 @@ import finterstellar as fs
 import matplotlib.pyplot as plt
 import requests as req
 import json
-import util as ut
+from . import util as ut
 
 
 def get_ohlc(symbol, start_date=None, end_date=None, decimal_duex=True):

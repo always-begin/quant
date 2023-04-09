@@ -36,4 +36,5 @@ def __decimal_formatter(duex):
 def _get_factor(input_df, factor):
   if factor == '-':
     factor = input_df.columns[0]
+    print(f'factor : {factor}')
   return factor

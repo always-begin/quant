@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import util as ut
+from . import util as ut
 
 
 def get_macd(input_df, short=12, long=26, signal=9, factor='-'):
